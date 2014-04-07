@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: no
+  sudo: yes
+
+  roles:
+    - base
+    - postgres
+    - studentenportal

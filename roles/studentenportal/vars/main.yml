@@ -1,0 +1,5 @@
+---
+# Database
+studentenportal_db: '{{ project_db }}'
+studentenportal_db_user: studentenportal
+studentenportal_db_pass: 'studentenportal'

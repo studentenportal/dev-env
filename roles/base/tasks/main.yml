@@ -1,0 +1,51 @@
+---
+
+# Packages
+
+- name: Install packages needed for ansible.
+  apt: pkg={{ item }} update-cache=yes cache_valid_time=3600
+  with_items:
+    - python
+    - python-apt
+    - python-pycurl
+    - python-psycopg2
+
+- name: Install required system packages.
+  apt: pkg={{ item }} update-cache=yes cache_valid_time=3600
+  with_items:
+    # Base
+    - build-essential
+    - gcc
+    - g++
+    # Python
+    - python
+    - python-dev
+    - python-setuptools
+    - python-pip
+    - python-virtualenv
+    # Version control
+    - git
+    - mercurial
+    - subversion
+    # Sysadmin tools
+    - mlocate
+    - vim-nox
+    - htop
+    - curl
+    - dnsutils
+
+# Users / Groups
+
+- name: Create group.
+  group: name={{ user_name }} state=present
+
+- name: Create user.
+  user: home=/home/{{ user_name }} name={{ user_name }} group={{ user_name }} shell=/bin/bash
+
+- name: Chown user home.
+  file: path=/home/{{ user_name }} state=directory owner={{ user_name }} group={{ user_name }} mode=0755
+
+# Directories
+
+- name: Create /srv/www directory.
+  file: path=/srv/www state=directory owner={{ user_name }} group=www-data

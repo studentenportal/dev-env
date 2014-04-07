@@ -1,0 +1,53 @@
+---
+
+# Packages
+
+- name: Add Postgres apt key.
+  apt_key: url='http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc' state=present
+
+- name: Add Postgres repository.
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main' update_cache=yes
+
+- name: Install Postgres packages.
+  apt: pkg={{ item }} state=present
+  with_items:
+    - 'postgresql-9.3'
+    - 'postgresql-client-9.3'
+    - 'postgresql-contrib-9.3'
+    - 'libpq-dev'
+
+# Permissions
+
+- name: Install pg_hba.conf file.
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf
+    owner=postgres group=postgres mode=06400
+  notify: restart postgresql
+
+- name: Install pg_ident.conf file.
+  template: src=pg_ident.conf.j2 dest=/etc/postgresql/9.3/main/pg_ident.conf
+    owner=postgres group=postgres mode=06400
+  notify: restart postgresql
+
+# Template DB
+
+- name: Get encoding of template1 database.
+  command: psql -c "COPY (SELECT encoding FROM pg_database WHERE datname = 'template1') TO STDOUT"
+  sudo_user: postgres
+  register: encoding
+
+- name: Drop and recreate template1 with UTF-8 support.
+  command: psql -c "{{ item }};"
+  sudo_user: postgres
+  with_items:
+    - "UPDATE pg_database SET datistemplate=FALSE WHERE datname='template1'"
+    - "DROP DATABASE template1"
+    - >
+      CREATE DATABASE template1
+      WITH owner=postgres template=template0
+      encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8'
+    - "UPDATE pg_database SET datistemplate=TRUE WHERE datname='template1'"
+  when: encoding.stdout != '6'
+
+- name: Enable CITEXT extension in template1 database.
+  sudo_user: postgres
+  command: psql -d template1 -c 'CREATE EXTENSION IF NOT EXISTS citext;'
