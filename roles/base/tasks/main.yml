@@ -34,6 +34,12 @@
     - curl
     - dnsutils
 
+- name: Install Imaging packages
+  apt: pkg={{ item }} update-cache=yes cache_valid_time=3600
+  with_items:
+    # Imaging
+    - imagemagick
+
 # Users / Groups
 
 - name: Create group.
