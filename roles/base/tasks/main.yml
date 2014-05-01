@@ -38,6 +38,8 @@
   apt: pkg={{ item }} update-cache=yes cache_valid_time=3600
   with_items:
     # Imaging
+    - libjpeg-progs
+    - libjpeg-dev
     - imagemagick
 
 # Users / Groups
